@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model List {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String
+  sortOrder Int        @default(0) @map("sort_order")
+  archivedAt DateTime? @map("archived_at")
+
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  items     Item[]
+
+  @@map("lists")
+  @@index([sortOrder])
+  @@index([archivedAt])
+}
+
+model Item {
+  id        String    @id @default(uuid()) @db.Uuid
+  listId    String    @db.Uuid @map("list_id")
+  title     String
+  isDone    Boolean   @default(false) @map("is_done")
+  note      String?   // メモ（任意）
+  dueDate   DateTime? @map("due_date")
+  sortOrder Int       @default(0) @map("sort_order")
+  completedAt DateTime? @map("completed_at")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  list      List      @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@map("items")
+  @@index([listId])
+  @@index([listId, sortOrder])
+  @@index([listId, isDone])
+  @@index([dueDate])
+}
